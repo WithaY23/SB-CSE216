@@ -1,5 +1,8 @@
 package Assignments.Assignment3;
 import java.lang.Math;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -52,10 +55,11 @@ public class Square implements Shape
 
         p4 = vertices[3];
 
-        double length1 = calculateLength(p1,p2);
-        double length2 = calculateLength(p1,p4);
-        double length3 = calculateLength(p3,p2);
-        double length4 = calculateLength(p3,p4);
+
+        double length1 = ((double) (Math.round(calculateLength(p1,p2) * 100))) / 100;
+        double length2 = ((double) (Math.round(calculateLength(p1,p4) * 100))) / 100;
+        double length3 = ((double) (Math.round(calculateLength(p3,p2) * 100))) / 100;
+        double length4 = ((double) (Math.round(calculateLength(p3,p2) * 100))) / 100;
 
         if (!(length1 == length2 && length3 == length4 && length1== length4))
         {
@@ -247,14 +251,35 @@ public class Square implements Shape
     //horizontal reflection is similar to a rotation with top left and bottom right swapped
     protected Square horizontalReflection()
     {
-        Point swap1 = new Point(this.p2.name,p4.x,p4.y); //put 2 in 4's spot
-
-        Point swap2 = new Point(this.p4.name,p2.x,p2.y);
+//        Point swap1 = new Point(this.p2.name,p4.x,p4.y); //put 2 in 4's spot
+//
+//        Point swap2 = new Point(this.p4.name,p2.x,p2.y);
 
         //DON'T use rotations for reflections, doesn't work for 45 degrees
         //use center and transform off that
+        double transformationReference= center().x;
+
+//        Point ap1 = p1.shift(0,transformationReference * 2 - p1.y);
+//        Point ap2 = p2.shift(0,transformationReference * 2 - p2.y);
+//        Point ap3 = p3.shift(0,transformationReference * 2 - p3.y);
+//        Point ap4 = p4.shift(0,transformationReference * 2 - p4.y);
+
+        //horizontal reflection (2c-x,y) -> 2*c.x - x,y
+//        Point ap1 = p1.shift(transformationReference * 2 - 2* p1.x,0);
+//        //Point ap1 = new Point(transformationReference * 2 - p1.x, p1.y)
+//        Point ap2 = p2.shift(transformationReference * 2 - 2* p2.x,0);
+//        Point ap3 = p3.shift(transformationReference * 2 - 2* p3.x,0);
+//        Point ap4 = p4.shift(transformationReference * 2 - 2* p4.x,0);
+
+        Point ap1 = new Point(p1.name,transformationReference * 2 - p1.x, p1.y);
+        Point ap2 = new Point(p2.name,transformationReference * 2 - p2.x, p2.y);
+        Point ap3 = new Point(p3.name,transformationReference * 2 - p3.x, p3.y);
+        Point ap4 = new Point(p4.name,transformationReference * 2 - p4.x, p4.y);
+        Point[] points = calculateOrder(ap1,ap2,ap3,ap4);
+
+        return new Square(points[0],points[1],points[2],points[3]);
         //rotate by 90 degrees counterclockwise
-        return (new Square(p1,swap2,p3,swap1)).rotateBy(90);
+//        return (new Square(p1,swap2,p3,swap1)).rotateBy(90);
     }
 
     //vertical reflection is similar to a rotation with 1 and 3 swapped respectively
@@ -265,28 +290,95 @@ public class Square implements Shape
         Point swap2 = new Point(this.p3.name,p1.x,p1.y);
 
         //rotate by 90 degrees
-        return (new Square(swap2,p2,swap1,p4)).rotateBy(90);
+//        return (new Square(swap2,p2,swap1,p4)).rotateBy(90);
 
         //try rotating the horizontal reflection by 180
         // return (this.horizontalReflection).rotateBy(180);
 
+        double transformationReference= center().y;
+
+        Point ap1 = new Point(p1.name,p1.x, transformationReference * 2 - p1.y);
+        Point ap2 = new Point(p2.name,p2.x, transformationReference * 2 - p2.y);
+        Point ap3 = new Point(p3.name,p3.x, transformationReference * 2 - p3.y);
+        Point ap4 = new Point(p4.name,p4.x, transformationReference * 2 - p4.y);
+        Point[] points = calculateOrder(ap1,ap2,ap3,ap4);
+
+        return new Square(points[0],points[1],points[2],points[3]);
+
     }
 
     //similar to horizontal reflection rotated by 90 degrees
+    //swap the points in the relevant positions
     protected Square diagonalReflection()
     {
-        //try rotating the horizontal reflection by 90
-        // return (this.horizontalReflection).rotateBy(90);
-        return null;
+        Point swap1 = new Point(this.p2.name,p4.x,p4.y); //put 2 in 4's spot
+
+        Point swap2 = new Point(this.p4.name,p2.x,p2.y);
+
+        return new Square(p1,swap2,p3,swap1);
     }
 
     //similar to horizontal reflection rotated by 90 degrees
     protected Square counterDiagonalReflection()
     {
-        //try rotating the horizontal reflection by 90
-        // return (this.horizontalReflection).rotateBy(90);
-        return null;
+        Point swap1 = new Point(this.p1.name,p3.x,p3.y);
+
+        Point swap2 = new Point(this.p3.name,p1.x,p1.y);
+
+
+        return new Square(swap2,p2,swap1,p4);
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true; // Identity check
+        if (!(o instanceof Square)) return false; // Type check
+
+        Square square = (Square) o;
+
+        // Create lists of points for both squares
+        List<Point> pointsOne = new ArrayList<>();
+        pointsOne.add(p1);
+        pointsOne.add(p2);
+        pointsOne.add(p3);
+        pointsOne.add(p4);
+
+        List<Point> pointsTwo = new ArrayList<>();
+        pointsTwo.add(square.p1);
+        pointsTwo.add(square.p2);
+        pointsTwo.add(square.p3);
+        pointsTwo.add(square.p4);
+
+        boolean pointMatch; //flag if points don't match
+
+        //check for all point equivalency
+        for (Point pointOne : pointsOne)
+        {
+            pointMatch = false; // set flag
+                //check by coordinates if points are equal, implement in Point
+                Iterator<Point> iterator = pointsTwo.iterator();
+                while (iterator.hasNext())
+                {
+                    Point pointTwo = iterator.next();
+                    //check if vertexes are equal
+                    if (pointOne.isEquivalent(pointTwo))
+                    {
+                        pointMatch = true;
+                        iterator.remove(); //remove the point from the inner list
+                        break;
+                    }
+                }
+            //no match found, return false
+            if (!pointMatch)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
 
 
@@ -382,7 +474,19 @@ public class Square implements Shape
         Square sq11 = sq2.rotateBy(45);
         System.out.println("45 degree rotation: " + sq11);
         System.out.println(sq11.center());
-        System.out.println("Horizontal reflection of 45 rotation:" + sq11.horizontalReflection());
+        System.out.println("Horizontal reflection of a 45 rotation: " + sq11.horizontalReflection());
+
+        System.out.println("Vertical reflection: " + sq2.verticalReflection());
+        System.out.println("Vertical reflection of a 45 rotation: " + sq11.verticalReflection());
+        sq2.rotateBy(360);
+        System.out.println("Vertical reflection of a 45 rotation back to original: " + (sq11.verticalReflection()).rotateBy(315));
+
+        System.out.println("Diagonal reflection: " + sq2.diagonalReflection());
+        System.out.println("Diagonal reflection of a 45 rotation: " + sq11.diagonalReflection());
+        System.out.println("Counter-diagonal reflection of a 45 rotation: " + sq11.counterDiagonalReflection());
+        Point b1 = new Point("B1",1,1);
+        if(b1.equals(b)) {System.out.println("Equals doesn't care about names");}
+        else{System.out.println("Points don't match");}
         //
 
 

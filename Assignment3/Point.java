@@ -44,6 +44,23 @@ public class Point
         return new Point("Difference",this.x - v2.x,this.y-v2.y);
     }
 
+    protected Point shift(double x, double y)
+    {
+        return new Point(this.name,this.x + x,this.y + y);
+    }
+
+    protected boolean isEquivalent(Point v)
+    {
+        double p1X = ((double) (Math.round(this.x * 100))) / 100;
+        double p1Y = ((double) (Math.round(this.y * 100))) / 100;
+        double p2X = ((double) (Math.round(v.x * 100))) / 100;
+        double p2Y = ((double) (Math.round(v.y * 100))) / 100;
+
+        return p1X == p2X && p1Y == p2Y;
+
+
+    }
+
 
 
 }

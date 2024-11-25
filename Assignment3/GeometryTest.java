@@ -24,6 +24,12 @@ public class GeometryTest
         SquareSymmetries squareSymmetries = new SquareSymmetries();
         squareSymmetries.areSymmetric(s1, s2); // expected to return false
         squareSymmetries.areSymmetric(s1, s3); // expected to return true
+
+//        verified
+//        System.out.println(squareSymmetries.areSymmetric(s1, s2)); //false
+//        System.out.println(squareSymmetries.areSymmetric(s1, s3)); //true
+
+
         SquareSymmetries sqSym = new SquareSymmetries();
         List<Square> symmetries = sqSym.symmetriesOf(s1);
 
