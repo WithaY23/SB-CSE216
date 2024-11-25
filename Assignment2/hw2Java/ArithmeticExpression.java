@@ -2,7 +2,6 @@ package Assignments.Assignment2.hw2Java;
 
 //Question 8
 
-class BinaryTree<T extends Number> { /* nature abhors a vacuum */ }
 
 enum Operator
 {
@@ -94,6 +93,7 @@ public class ArithmeticExpression
         double thirdResult = evaluate(thirdTree);
         System.out.println("Result of third expression: " + thirdResult);
         // it is ok if the output is 2.5 in this third test
+        // BinaryTree<Integer> fourthTree = new Leaf<>(5);
                 
     }
     

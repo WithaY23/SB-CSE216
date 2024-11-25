@@ -8,7 +8,8 @@ import java.util.List;
  *
  * @author Ritwik Banerjee
  */
-public class GeometryTest {
+public class GeometryTest
+{
 
     public static void main(String... args) {
         testSquareSymmetries();
@@ -16,7 +17,7 @@ public class GeometryTest {
 
     private static void testSquareSymmetries() {
         //invalid square?
-        Square s1 = new Square(new Point("OneOne", 1, 1), new Point("OneTwo", 1, 2), new Point("ZeroTwo", 0, 2), new Point("ZeroOne", 0, 1));
+        Square s1 = new Square(new Point("OneTwo", 1, 2), new Point("ZeroTwo", 0, 2), new Point("ZeroOne", 0, 1),new Point("OneOne", 1, 1));
         Square s2 = s1.rotateBy(30);
         Square s3 = s1.rotateBy(180);
 
