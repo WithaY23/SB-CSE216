@@ -30,6 +30,7 @@ let mine = [firstTestList;secondTestList];;
 *)
 
 (*Problem #1*)
+(*Remove identical elements adjacent to eachother*)
 
 (*Helper function for compress*)
 let rec compressHelp lst ch = match lst with
@@ -58,8 +59,8 @@ utop # compress firstTestList;;
 
 
 (*Problem #2*)
-
 (*Take a list and a function, create a list that that contains all true elements of f*)
+
 let rec remove_if lst f = match lst with
 |hd::tl -> if (f hd) then (*Check if the element passes the predicate*)
 
@@ -94,6 +95,7 @@ remove_if secondTestList evenTest;;
 
 
 (*Problem #3*)
+(*Mimic slicing, removing all elements starting at i and ending at j, checking for valid bounds*)
 
 let rec slice lst i j = match lst with
 |hd::tl -> if i = 0 then (*Check slice initial index to see if it starts*)
@@ -163,7 +165,9 @@ slice fourthTestList 1 3;;
 
 
 
-(*Problem 4*)
+(*Problem 4*)   
+(*Separate list based on function f*)
+
 (*Helper for equivs, check the built list for an equivalent match, return list list with added element in relevant section*)
   let rec equivalenceContainment f add finalLst = 
     match add with 
@@ -208,6 +212,7 @@ equivs (=) secondTestList;;
 
 
 (*Problemn #5*)
+(*Find pair prime numbers that add up to input number n. If not found, return (0,0)*)
 
 (*Check if number is prime, false if it gets divided, true if it reaches div = 1*)
 let primeChecker num = let rec primeHelp num div = 
@@ -260,6 +265,7 @@ goldbachpair 18;;
 
 (*Problem #6*)
 (*Take two functions and check for every element of the list that they are equivalent*)
+
 let rec identical_on f g lst = match lst with 
 |hd::tl ->if (f hd = g hd) then identical_on f g tl else false
 |_->true;;
@@ -282,8 +288,8 @@ identical_on greaterThanTwenty evenTest [40;60;80];;
 
 
 (*Problem #7*)
+(*Compare, through cmp, elements of a list two elements at a time through cmp and store the valid element*)
 
-(*Compare two elements from a list and store some elements*)
 (*Elements are stored by lst and filtered through cmp*)
 let rec pairWiseFilter cmp lst = match lst with
 
@@ -307,6 +313,7 @@ pairWiseFilter max secondTestList;;
 
 
 (*Problem #8*)
+(*Forms a polynomial from list of tuples, allow it to compute formulas with one variable, x*)
 
 (*Helper function for problem 8, power function. Num to power of iterate*)
 let rec power num iterate = if iterate = 0 then 1 
@@ -360,6 +367,8 @@ utop # tupTwo 3;;
 
 
 (*Problem #9*)
+(*Make a list of all the suffixes provided in list, lst. List of list, removing the first element every time*)
+
 
 (*Helper method for suffixes*)
 let rec s lst = match lst with
@@ -391,6 +400,9 @@ suffixes secondTupleList;;
 
 
 (*Problem #10*)
+(*Make a powerset of a list, return 'a list list*)
+
+
 (*
 add- the current element that is being added
 rest- list list, stores collection that add needs to combine with (map to)
