@@ -9,11 +9,13 @@ public class HigherOrderUtils
     //T: First type of argument
     //U: Second type of argument
     //R: Return type of argument
-    static interface NamedBiFunction<T,U,R> extends BiFunction<T,U,R>
+    //Mimic a bifunction in java
+    public static interface NamedBiFunction<T,U,R> extends BiFunction<T,U,R>
     {
         String name();
     }
 
+    //create instances of NamedBiFunction with relevant operations
     public static NamedBiFunction<Double,Double,Double> add = new NamedBiFunction<Double, Double, Double>()
     {
         @Override
@@ -40,7 +42,7 @@ public class HigherOrderUtils
         @Override
         public Double apply(Double x, Double y)
         {
-            return y-x;
+            return x-y;
         }
 
 
@@ -92,6 +94,7 @@ public class HigherOrderUtils
 
 
     /**
+     * Professor description:
      * Applies a given list of bifunctions -- functions that take two arguments of a certain type
      * and produce a single instance of that type -- to a list of arguments of that type. The
      * functions are applied in an iterative manner, and the result of each function is stored in
@@ -115,30 +118,27 @@ public class HigherOrderUtils
      * elements do not match up as required.
      */
 
-    //change signature to of bifunctions parameter from BiFunction<T, T, T>> bifunctions
-    //to ? extends BiFunction<T, T, T>> bifunctions, accounts for NamedBiFunctions
+
+    //using ? extends BiFunction<T, T, T> to include both BiFunction and NamedBiFunction
     public static <T> T zip(List<T> args, List<? extends BiFunction<T, T, T>> bifunctions)
     {
         if(bifunctions.size() != args.size() -1)
             throw new IllegalArgumentException("Size of lists are invalid");
         if (bifunctions.isEmpty())
-            throw new IllegalArgumentException("Empty bifunctions list");
+            return args.get(0); //only one element, technically the arguments "match up as required"
 
         //set the "accumulator" to the first element of args
         T acc = args.get(0);
 
         List<T> argsCopy = new LinkedList<T>(args); //maintain "functional" style
-        //Shouldn't need to as the code represents a side effect of affecting the outside args list.
+        //shouldn't need to as the code represents a side effect of affecting the outside args list.
 
 
 
         //used to iterate through the list with modifications
         ListIterator<T> iterateArg = argsCopy.listIterator(1);
 
-//        while(iterateArg.hasNext())
-//        {
-//            iterateArg.next()
-//        }
+
 
         //the length of iterateArg and bifunctions are now the same, they will "run out" of elements at the same time
         for(BiFunction<T,T,T> function : bifunctions)
@@ -151,38 +151,42 @@ public class HigherOrderUtils
     };
 
 
-//    public static Consumer<String> tr = o -> System.out.println(o);
 
 
     public static void main(String... args)
     {
+        //professors comment and test code
         List<Double> numbers = Arrays.asList(-0.5, 2d, 3d, 0d, 4d); // documentation example
         List<NamedBiFunction<Double, Double, Double>> operations = Arrays.asList(add,multiply,add,divide);
         Double d = zip(numbers, operations); // expected correct value: 1.125
-// different use case, not with NamedBiFunction objects
+        // different use case, not with NamedBiFunction objects
         List<String> strings = Arrays.asList("a", "n", "t");
-// note the syntax of this lambda expression
+        // note the syntax of this lambda expression
         BiFunction<String, String, String> concat = (s, t) -> s + t;
         String s = zip(strings, Arrays.asList(concat, concat)); // expected correct value: "ant"
 
-        //custom test cases
-        System.out.println("First double: " + d);
-        System.out.println("First string: " + s);
-
-        //4 elements total, 3 bifunctions needed
-        List<String> strings1 = Arrays.asList(s,"s are", " small", " creatures!");
-        System.out.println("Second string: " + zip(strings1,Arrays.asList(concat, concat, concat)));
 
 
-        //invalid size difference
-        List<Double> numbers1 = Arrays.asList(2.,3.,5.);
-//        System.out.println("Invalid size difference: " + zip(numbers1,operations));
+        //personal custom test cases
+       System.out.println("First double: " + d);
+       System.out.println("First string: " + s);
+
+       //4 elements total, 3 bifunctions needed
+       List<String> strings1 = Arrays.asList(s,"s are", " small", " creatures!");
+       System.out.println("Second string: " + zip(strings1,Arrays.asList(concat, concat, concat)));
+
+       //invalid size difference
+       List<Double> numbers1 = Arrays.asList(2.,3.,5.);
+       System.out.println("Invalid size difference: " + zip(numbers1,operations));
+
+       //no elements in instance of BiFunctions
+       List<Double> numbers2 = Arrays.asList(1.);
+       List<NamedBiFunction<Double,Double,Double>> operations1 = new ArrayList<>();
+       System.out.println("No elements provided: " + zip(numbers2,operations1));
+       List<Double> numbers3 = Arrays.asList(0d,0d,0d,0d,0d);
+       System.out.println(zip(numbers3,operations)); //div by zero error
 
 
-        //no elements in instance of BiFunctions
-        List<Double> numbers2 = Arrays.asList(1.);
-        List<NamedBiFunction<Double,Double,Double>> operations1 = new ArrayList<>();
-//        System.out.println("No elements provided: " + zip(numbers2,operations1));
 
 
     }

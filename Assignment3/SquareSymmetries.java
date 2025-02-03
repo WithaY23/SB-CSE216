@@ -1,13 +1,10 @@
 package Assignments.Assignment3;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-//<B extends Square>
-public class SquareSymmetries implements Symmetries<Square>//<A extends Shape>
+//Class to validate symmetries of Squares
+public class SquareSymmetries implements Symmetries<Square>
 {
 
 
@@ -17,16 +14,50 @@ public class SquareSymmetries implements Symmetries<Square>//<A extends Shape>
     public boolean areSymmetric(Square s1, Square s2)
     {
         //create list of symmetries for one of them, if the other isn't included then false
-        for(Square compare : symmetriesOf(s1))
+//        for(Square compare : symmetriesOf(s1))
+//        {
+//            if(compare.equals(s2))
+//            {
+//                return true;
+//            }
+//        }
+//        return false;
+        // Create lists of points for both squares
+        List<Point> pointsOne = s1.toList();
+
+        List<Point> pointsTwo = s2.toList();
+
+        boolean pointMatch; //flag if points don't match
+
+        //check for all point equivalency
+        for (Point pointOne : pointsOne)
         {
-            if(compare.equals(s2))
+            pointMatch = false; // set flag
+            //check by coordinates if points are equal, implement in Point
+            Iterator<Point> iterator = pointsTwo.iterator();
+            while (iterator.hasNext())
             {
-                return true;
+                Point pointTwo = iterator.next();
+                //check if vertexes are equal
+                if (pointOne.isEquivalent(pointTwo))
+                {
+                    pointMatch = true;
+                    iterator.remove(); //remove the point from the inner list
+                    break;
+                }
+            }
+            //no match found, return false
+            if (!pointMatch)
+            {
+                return false;
             }
         }
-        return false;
+
+        return true;
+//        return s1.isSymmetric(s2);
     }
 
+    //find all symmetries of a provided square
     @Override
     public List<Square> symmetriesOf(Square square)
     {
@@ -47,4 +78,28 @@ public class SquareSymmetries implements Symmetries<Square>//<A extends Shape>
 
         return symmetricalSquare;
     }
+
+    //methods from Square class that form symmetries, use them here
+    protected Square horizontalReflection(Square sq)
+    {
+        //double v = sq.toList().get(0).x;
+        return sq.horizontalReflection();
+    }
+
+    protected Square verticalReflection(Square sq)
+    {
+        return sq.verticalReflection();
+    }
+    protected Square diagonalReflection(Square sq)
+    {
+        return sq.diagonalReflection();
+    }
+
+    //swap opposite points of diagonalReflection, not a clear distinction just opposite
+    protected Square counterDiagonalReflection(Square sq)
+    {
+        return sq.counterDiagonalReflection();
+    }
+
+
 }
