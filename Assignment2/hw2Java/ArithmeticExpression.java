@@ -66,6 +66,7 @@ public class ArithmeticExpression
 
     public static void main(String[] args) 
     {
+        //evaluate binary tree in java
         BinaryTree<Integer> expressionTree = new Node<>(
         Operator.ADD,
         new Leaf<>(1),
