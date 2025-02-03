@@ -68,22 +68,27 @@ type expr =
 
 
 (*Problem #1*)
+(*In order, display a binary tree -> int list*)
+(*Can be expanded to 'a list, required int for hw*)
 
-
+(*Binary tree format*)
 type 'a binarytree = 
 |Leaf
 |NodeB of 'a * 'a binarytree * 'a binarytree;;
 
-
+(*Generic reverse a list, lst*)
 let rec reverse lst = match lst with
 |hd::tl -> reverse tl @ [hd]
 |_-> [];;
 
-let walk_inorder (y: 'a binarytree):int list = let rec inOrderHelper (x:'a binarytree):int list = match x with
-|Leaf -> []
-|NodeB (n,ltree,rtree) -> (inOrderHelper rtree) @ (n :: inOrderHelper ltree )
+(*Walk in order algorithm*)
 
-in reverse (inOrderHelper y);;
+let walk_inorder (y: 'a binarytree):int list = let rec inOrderHelper (x:'a binarytree):int list = match x with
+|Leaf -> [] (*Base case for recursion*)
+|NodeB (n,ltree,rtree) -> (inOrderHelper rtree) @ (n :: inOrderHelper ltree )(*Add node to tree, evaluate left and right, append left after, right before*)
+in reverse (inOrderHelper y);; (*Reverse the lst*)
+
+(*Test cases*)
 let myBinaryTree = NodeB(1,NodeB(2,NodeB(4,Leaf,Leaf),NodeB(5,Leaf,Leaf)),NodeB(3,NodeB(9,Leaf,Leaf),NodeB(0,Leaf,Leaf)));;
 
 walk_inorder myBinaryTree;;
@@ -94,8 +99,9 @@ walk_inorder yourBT;;
 
 
 (*Problem #2*)
+(*Print a list based on an arithmetic tree depending on the specified value Operators or Operands*)
 
-
+(*Arithmetic tree definition*)
 type ('a,'b) tree =
 |Leaf of 'a
 |Tree of ('a, 'b) node
@@ -189,7 +195,7 @@ let rec items_of_parameter_type (y:('a, 'b) tree) (v:value) = match v with
 
 
 (*Problem 3*)
-
+(*Take a fully parenthesized expression as a string and display it in an arithmetic tree format*)
 
 
 
@@ -244,8 +250,6 @@ type valid =
 let mine (x:operator) = 2;;
 
 (*Helper functions*)
-
-
 let isDigit a :bool= match a with
 |'0' -> true
 |'1' -> true
@@ -266,10 +270,6 @@ let isSpace a :bool = match a with
 |' ' -> true
 |_ -> false;;
 
-let isDot a :bool = match a with 
-|'.' -> true
-|_ -> false;;
-
 let isOperator a :bool = match a with
 |'+' -> true
 |'-' -> true
@@ -277,29 +277,17 @@ let isOperator a :bool = match a with
 |'/' -> true
 |_ -> false;;
 
-let isValid a :bool = if (isDigit a||isDot a||isSpace a||isDot a||isOperator a) then true else false;;
-(*
-let findValid a :valid -> if (isDot a) then Dot(a) else Int(a);;*)
-
-(* let rec parenthesesParser str = if str = ("") then 2 else 3;; *)
 
 
-(*Assign values to tagged constructs*)
-(*Turn possibly invalid string into valid list, or error message*)
-(*Need a digit parser, operator parser*)
-
-(*Took a digit, check for valid input after, particularly excusing dot*)
-
-(**)
+(*Possible error values, multiple for testing*)
 
 exception InvalidInput;;
-
 exception EndErrorInput;;
 exception OddError;;
 exception DotInParserHelper;;
 exception SpaceInParserHelper;;
 
-
+(*Parse all the possible inputs*)
 let parser str = (*Was str lst, removed and replaced with an empty list*)
     (*All elements of the list will be a 2d list, [[e]; [1;2;3;.;4];[+;.]]*)
     let rec parserHelper str lst index max =
@@ -312,6 +300,13 @@ let parser str = (*Was str lst, removed and replaced with an empty list*)
         else if(isDigit (str.[index])) then (
             digitParser str (lst) [] (index) max false
             ) 
+        else if((str.[index] = '-')) then ( (*account for negative values*)
+            if (index+ 1 < max) 
+                then if (isDigit (str.[index+1])) then (*negatives have to have a digit after*)
+                    digitParser str (lst) [str.[index]] (index + 1) max false (*Add negative as first input*)
+                    else operatorParser str lst [] index max (*Assume operator subtraction and send for its parser to handle*)
+
+                else operatorParser str lst [] index max )
 
         else if (isOperator (str.[index])) then
             operatorParser str lst [] (index) max
@@ -337,7 +332,6 @@ let parser str = (*Was str lst, removed and replaced with an empty list*)
         (*Includes processing float*)
         (*When morphing list, use String.concat to get digits inline*)
         (*Then use int_of_string/ float_of_string to get digits to value*)
-        (*Case checkoff list: dotX, digitX, spaceX, left parenthesesNOTVALID, right parenthesesX, otherfails*)
     and digitParser str originalLst newLst index max dot = if (index = (max+1))   (*Check if the next input will cause an error*)
         then raise InvalidInput (*Raise an error*)
         
@@ -372,9 +366,17 @@ let parser str = (*Was str lst, removed and replaced with an empty list*)
         else if (isOperator (str.[index])) then (* Validate operator, check character after *)
             if (str.[index + 1] = ' ') then (* Validate that there is a number or expression after operator *)
                 if (isDigit str.[index + 2]) then 
-                    parserHelper str ([str.[index]]::originalLst) (index + 2) max (*Skip space and send parse*)(* DC that this and next lines are valid *)
+                    parserHelper str ([str.[index]]::originalLst) (index + 2) max (*Skip space and send parse*)
+
                 else if (str.[index + 2] = '(') then 
                     parserHelper str ([str.[index]]::originalLst) (index + 2) max
+                else if((str.[index+2] = '-')) then ( (*account for negative values*)
+                    if (index+ 3 < max) 
+                        then if (isDigit (str.[index+3])) then
+                            parserHelper str ([str.[index]]::originalLst) (index + 2) max
+                            else raise InvalidInput
+        
+                        else raise InvalidInput )
                 else 
                     raise InvalidInput 
             else if (str.[index + 1] = '.') then 
@@ -383,6 +385,14 @@ let parser str = (*Was str lst, removed and replaced with an empty list*)
                 else if (str.[index + 2] = ' ') then  (*Process similar to without dot*)
                     if (isDigit str.[index + 3]) then 
                         parserHelper str ([str.[index]; str.[index + 1]]::originalLst) (index + 3) max
+
+                    else if((str.[index+3] = '-')) then ( (*account for negative values*)
+                        if (index+ 4 < max) 
+                            then if (isDigit (str.[index+4])) then
+                                parserHelper str ([str.[index]; str.[index + 1]]::originalLst) (index + 3) max
+                                else raise InvalidInput
+            
+                            else raise InvalidInput )
                     else if (str.[index + 3] = '(') then 
                         parserHelper str ([str.[index]; str.[index + 1]]::originalLst) (index + 3) max
                     else 
@@ -409,6 +419,14 @@ let parser str = (*Was str lst, removed and replaced with an empty list*)
 
             else if(isDigit str.[index+1]) then 
                 parserHelper str ([str.[index]] :: lst) (index +1) max
+            
+            else if((str.[index+1] = '-')) then ( (*account for negative values*)
+                if (index+ 2 < max) 
+                    then if (isDigit (str.[index+2])) then
+                        parserHelper str ([str.[index]]::lst) (index + 1) max
+                        else raise InvalidInput
+    
+                    else raise InvalidInput )
 
             else raise InvalidInput (*Changed*)
 
@@ -493,7 +511,7 @@ let convertFOperator o = match o with
 type validOperators = 
 |IntOperator of operator
 |FloatOperator of floatOperators;;
-(* |NoOperators *)
+
 
 (* let a (x:validOperators) = match x with
 |IntOperator y-> (match y with
@@ -504,25 +522,7 @@ type validOperators =
 )
 |FloatOperator _-> 3;; *)
 
-(*
-CAN'T have it build the types into one type, deconstruct would be impossible. 
-Have to make string list to tree
 
-let testOperatorOne:floatOperators = Faddition;; Tag a floatOperators
-let enhancedTestOperatorOne:validOperators = FloatOperator(testOperatorOne);; Tag it as a valid operator
-let trueTestOperatorTwo:validOperators = FloatOperator(Fsubtraction);; Combine in one step
-
-
-*)
-
-(*Create mixed float and int ADT for list/tree 
-
-type fint = 
-|Int of int
-|Float of float
-
-let testIntOne:fint = Int(55);;
-*)
 
 let rec counting lst char = match lst with
 |hd::tl -> (if (hd =char) then 1 else 0) + counting tl char
@@ -541,12 +541,25 @@ let rec rConcatentation originalLst = match originalLst with
 (*Check first operators type, if it is a float or integer operator*)
 let rec findOperator lst = match lst with 
 |hd::tl-> if(isOperator hd.[0]) then 
-            if (String.length hd = 2)
-                then FloatOperator (convertFOperator hd)
+            if (String.length hd = 2) then
+                if (isDigit hd.[1]) then findOperator tl else (*Account for negative*)
+                FloatOperator (convertFOperator hd)
             else IntOperator (convertIOperator hd)
           else findOperator tl
         
 |_ -> raise OddError;;
+
+let rec findIfOperator lst = match lst with 
+|hd::tl-> if(isOperator hd.[0]) then 
+            if (String.length hd >= 2) then
+                if (isDigit hd.[1]) then findIfOperator tl else (*Account for negative*)
+                true
+            else true
+          else findIfOperator tl
+        
+|_ -> false
+
+
 
 
 
@@ -562,25 +575,61 @@ let testMatch (x:validOperators) = match x with
                     else raise InvalidInput*)
 
 let rec validateOperators (t:validOperators) lst = match lst with 
-|hd::tl -> if (isOperator hd.[0]) then
-        match t with
-        |IntOperator _-> if (String.length hd = 1) then validateOperators t tl else false
-        |FloatOperator _-> if (String.length hd = 2) then validateOperators t tl else false
-    else validateOperators t tl
-|_-> true;;
-
+|hd::tl -> 
+    if (isOperator hd.[0]) then (
+        if (String.length hd > 1) then 
+            if (isDigit hd.[1]) then  (*Negative number*)
+                validateOperators t tl  (*Continue with the rest of the list *)
+            else 
+                match t with
+                |IntOperator _ -> if (String.length hd = 1) then validateOperators t tl else false
+                |FloatOperator _ -> if (String.length hd = 2) then validateOperators t tl else false
+        else 
+            match t with
+            |IntOperator _ -> if (String.length hd = 1) then validateOperators t tl else false
+            |FloatOperator _ -> if (String.length hd = 2) then validateOperators t tl else false
+    )
+    else 
+        validateOperators t tl  (*Continue with rest *)
+| _ -> true 
 (*Create a special check for IntOperator, ensure all are ints*)
 let rec validateInts lst = match lst with 
 |hd::tl -> if (isDigit hd.[0]) then 
                 if(String.contains hd '.')  
                     then false
                     else validateInts tl
+            else if (String.length hd >=2) then 
+                (if (isOperator hd.[0]) then (*Account for negative*)
+                    if(isDigit hd.[1]) then
+                        if(String.contains hd '.')  
+                            then false
+                        else 
+                            validateInts tl
+                    else validateInts tl
+                else validateInts tl )
             else validateInts tl
-
 |_-> true;;
 
-
-
+let rec findInt lst : fint = match lst with 
+|hd::tl -> 
+    if (hd.[0] = '-') then  (*check for negative numbers *)
+        if (String.length hd >= 2) then(
+            if (isDigit hd.[1]) then 
+                if (validateInts lst) then 
+                    Int(int_of_string hd) 
+                else
+                    Float(float_of_string hd)
+            else 
+                findInt tl)
+            else findInt tl
+    else if (isDigit hd.[0]) then
+        if (validateInts lst) then 
+            Int(int_of_string hd)
+        else
+            Float(float_of_string hd)
+    else 
+        findInt tl 
+| _ -> raise OddError;;
 
 (* 
 
@@ -599,7 +648,7 @@ right: ('a,'b) tree
 
 *)
 
-
+(*Building the trees*)
 let build_integer_tree (parsedString: string list) : (fint, validOperators) tree =
     let rec build_subtree lst : ((fint,validOperators) tree * string list)= match lst with
     | "(" :: tl ->  (* Start building a tree *)
@@ -613,10 +662,19 @@ let build_integer_tree (parsedString: string list) : (fint, validOperators) tree
         (* Return the cumulated tree and the remaining list *)
         (Tree { operator = (IntOperator (convertIOperator operator)); left = left; right = right }, List.tl rRemaining)  
     | hd :: tl -> (*Used for leaves*)
-        if isOperator hd.[0] then
-            raise InvalidInput  (* Operators should not appear outside parentheses *)
-        else if isDigit hd.[0] then
-            (Leaf (Int(int_of_string hd)), tl)  (* Return the leaf and the remaining list *)
+        if (String.length hd = 1) then(
+            if isDigit hd.[0] then
+            (Leaf (Int(int_of_string hd)), tl)
+            else raise InvalidInput
+            )  (* Return the leaf and the remaining list *)
+        else if isOperator hd.[0] then(
+            if (isDigit hd.[1]) then 
+                (Leaf (Int(int_of_string hd)), tl)
+            else raise InvalidInput )
+        
+        else if isDigit hd.[0] then 
+            (Leaf (Int(int_of_string hd)), tl)
+
         else
             raise InvalidInput
     | _ -> raise InvalidInput
@@ -637,10 +695,19 @@ let build_float_tree (parsedString: string list) : (fint, validOperators) tree =
         (* Return the cumulated tree and the remaining list *)
         (Tree { operator = FloatOperator(convertFOperator operator); left = left; right = right }, List.tl rRemaining)  
     | hd :: tl -> (*Used for leaves*)
-        if isOperator hd.[0] then
-            raise OddError  (* Operators should not appear outside parentheses *)
+        
+        if (String.length hd = 1) then( (* Return the leaf and the remaining list *)
+            if isDigit hd.[0] then
+                (Leaf (Float(float_of_string hd)), tl)
+            else raise InvalidInput
+            )
+        else if isOperator hd.[0] then(
+            if (isDigit hd.[1]) then 
+                (Leaf (Float(float_of_string hd)), tl)
+            else raise InvalidInput )
         else if isDigit hd.[0] then
-            (Leaf( Float(float_of_string hd)), tl)  (* Return the leaf and the remaining list *)
+            (Leaf (Float(float_of_string hd)), tl)
+
         else
             raise InvalidInput
     | _ -> raise InvalidInput
@@ -649,7 +716,7 @@ let build_float_tree (parsedString: string list) : (fint, validOperators) tree =
     tree;;  (* Return the constructed tree *)
 
 
-
+(*Build the arithmetic tree, using created datatypes for polymorphism*)
 let build_tree (y:string) : (fint, validOperators) tree = 
 
     if(y.[0] = '(' && y.[String.length y -1 ] = ')') then 
@@ -657,17 +724,21 @@ let build_tree (y:string) : (fint, validOperators) tree =
             
              if (counting parsed ['('] = counting parsed [')'])  then (*Check valid parentheses count*)     
                 let parsedString = rConcatentation parsed in (*make char list list into string list*)
-                    let typeOfOperators = findOperator parsedString in (*Store float/int operator that is used, all operators must match*)
-                        if(validateOperators typeOfOperators parsedString) then 
-                            match typeOfOperators with
-                            |IntOperator _-> if(validateInts parsedString) then build_integer_tree parsedString
-                                else raise InvalidInput (*Fail, all operands must be ints if operators are*)
-                                    
-                            |FloatOperator _-> build_float_tree parsedString (*Doesn't care about operands, will make them all float regardless*)
-                            (* |NoOperators -> if(validateInts parsedString) then build_integer_tree parsedString
-                                else build_float_tree parsedString  Couldn't make it work with 0 operators *)
-                        else (*operators don't match*)
-                            raise InvalidInput
+                    if(findIfOperator parsedString) then(
+
+
+                        let typeOfOperators = findOperator parsedString in (*Store float/int operator that is used, all operators must match*)
+                            if(validateOperators typeOfOperators parsedString) then 
+                                match typeOfOperators with
+                                |IntOperator _-> if(validateInts parsedString) then build_integer_tree parsedString
+                                    else raise InvalidInput (*Fail, all operands must be ints if operators are*)
+                                        
+                                |FloatOperator _-> build_float_tree parsedString (*Doesn't care about operands, will make them all float regardless*)
+                                (* |NoOperators -> if(validateInts parsedString) then build_integer_tree parsedString
+                                    else build_float_tree parsedString  Couldn't make it work with 0 operators *)
+                            else (*operators don't match*)
+                                raise InvalidInput)
+                        else Leaf( findInt parsedString)
 
             else raise InvalidInput
      else raise InvalidInput;; 
@@ -680,10 +751,18 @@ build_tree "( (2 + 5) - (3 * (9 / 4) ) )";;
 build_tree "( (2 + 5) - (3 * (9 / 4)))";;
 build_tree "(((2 +. 9.) +. ( 5. /. 3.)) +. 9.)";;
 build_tree "(((2 +. 9) +. ( 5 /. 3)) +. 9)";;
+
+let t = build_tree "((1 +. 0.999) +. (0.001 *. +1))";;
+Exception: InvalidInput.
+
+let t = build_tree "((1 +. (-5. *. -3.)) +. 4)";;
+
 *)
 
 
 (*Problem 4*)
+(*Evaluate valid arithmetic tree formed in problem 3*)
+(*Return fInt, datatype of float or int*)
 
 
 (*type operator =
@@ -757,8 +836,18 @@ let v = evaluate t;; = Float 10.5
 let t = build_tree "(1 +. (2 *. 3))";;
 let v = evaluate t;;  = Float 7.
 
+let t = build_tree "((1 +. (-5. *. -3.)) +. 4)";;
+let v = evaluate t;;  = Float 20.
+
+let t = build_tree "((1 +. 0.999) +. (-0.001 *. -1))";;
+let v = evaluate t;;  = Float 2.
+
+
 let t = build_tree "(1 +. (2 /. 0))";;
 let v = evaluate t;;  = Exception Division_by_zero
+
+
+
 *)
 
 
@@ -768,6 +857,8 @@ let v = evaluate t;;  = Exception Division_by_zero
 
 
 (*Problem 5*)
+(*Evaluate ADT arithmetic expression by reducing constants to lowest form*)
+
 (* 2x+5y+5+10 *)
 (* | -> Add( Add (Add (Mul (Const 2, Var "x"), Mul(Const 5, Var "y")), Const 5), Const 10)*)
 type expr =
@@ -1027,7 +1118,8 @@ Const 6
 
 
 
-(*Problem 6 WORKS*)
+(*Problem 6*)
+(*Make squareroot valid on unsafe input*)
 let safesqrt x = if x < 0. then None else Some(sqrt(x));;
 (* 
 safesqrt (-49.);;
@@ -1035,6 +1127,7 @@ float option = None
 safesqrt (49.);;
 float option = Some 7. *)
 
+(*Take a list and process it through an optional function, return all value holding elements*)
 let process_all (lst: 'a list) (f: 'a -> 'b option) = List.map (fun x -> Option.get x)(List.filter (fun x -> if x = None then false else true) (List.map f lst));;
 
 (* process_all [-1.0; 0.0; 4.0; 9.0; -16.0; 25.0] safesqrt;; 
